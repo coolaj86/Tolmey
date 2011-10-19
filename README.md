@@ -13,7 +13,7 @@ The code for transforming the coordinates was heavily inspired by the
 
 ##Usage Examples
 
-Getting X and Y Tile Coordinates From Latitude And Longitude:
+###Getting X and Y Tile Coordinates From Latitude And Longitude:
 
     var converter = new Tolmey();
     var lat = 40.6789;
@@ -23,10 +23,15 @@ Getting X and Y Tile Coordinates From Latitude And Longitude:
     var tile_coordinates = converter.getMercatorFromGPS(lat, long, zoom);
     // { x: 6217, y: 12324 }
 
-Getting A URL for an OpenStreetMap Tile:
+###Getting A URL for an OpenStreetMap Tile:
 
     var url = converter.getTileURL(openstreetmap', tile_coordinates.x, tile_coordinates.y,zoom);
     // "http://tile.openstreetmap.org/15/6217/12324.png"
+
+##Example App
+
+There is a small skeleton HTML page along with some javascript that
+demonstrates how you could use Tolmey.
 
 ##Tolmey and Google Maps
 I used FoxtrotGPS and OpenStreetMap to build this, but Google Maps

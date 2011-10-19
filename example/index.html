@@ -1,0 +1,23 @@
+<html>
+<head>
+  <title>Tolmey Test</title>
+  <script src="ender.min.js" type="text/javascript"></script>
+  <script src="tolmey.js" type="text/javascript"></script>
+  <script src="app.js" type="text/javascript"></script>
+</head>
+
+<body>
+  <h1>Tolmey Tester</h1>
+
+  <p>Enter a zoom level between 0 and 20, and hit the button to load the OpenStreetMap tile for your location.</p>
+
+  <form id="lat_long" name="lat_long">
+    <label for="zoom">Zoom</label><br>
+    <input type="text" id="zoom"><br>
+    <label for="map_service">Map Service</label><br>
+    <button type="submit" id="submit_button">Display Map Tile For My Location</button>
+  </form>
+
+  <h3>The image should show up below</h3><img id="map_result" src="foobar.png" name="map_result">
+</body>
+</html>
