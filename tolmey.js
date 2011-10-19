@@ -1,3 +1,6 @@
+// (C) Jamison Dance (jergason) 2011
+// MIT License
+
 var Tolmey = (function() {
   "use strict";
 
