@@ -28,6 +28,13 @@ Getting A URL for an OpenStreetMap Tile:
     var url = converter.getTileURL(openstreetmap', tile_coordinates.x, tile_coordinates.y,zoom);
     // "http://tile.openstreetmap.org/15/6217/12324.png"
 
+##Tolmey and Google Maps
+I used FoxtrotGPS and OpenStreetMap to build this, but Google Maps
+apprears to use a very similar coordinate system and URL scheme, so
+Tolmey might be useful for obtaining URLs to Google Map tiles as well.
+
+Feel free to bug me if you want more info on this.
+
 ##Why the name Tolmey?
 "Tolmey" my horrible misspelling of [Ptolemy](http://en.wikipedia.org/wiki/Ptolemy),
 a famous Roman scientist. Among many other things, he was a famous
