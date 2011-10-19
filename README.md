@@ -36,6 +36,6 @@ Tolmey might be useful for obtaining URLs to Google Map tiles as well.
 Feel free to bug me if you want more info on this.
 
 ##Why the name Tolmey?
-"Tolmey" my horrible misspelling of [Ptolemy](http://en.wikipedia.org/wiki/Ptolemy),
+"Tolmey" is my horrible misspelling of [Ptolemy](http://en.wikipedia.org/wiki/Ptolemy),
 a famous Roman scientist. Among many other things, he was a famous
 cartographer and mapper.
