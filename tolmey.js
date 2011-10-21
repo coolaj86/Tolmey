@@ -11,13 +11,24 @@
 
   //Returns the central angle between two points in latiude and longitude
   Tolmey.prototype.haversineFunction = function (lat_start, long_start, lat_end, long_end) {
-    return 2 * Math.asine( Math.sqrt(Math.pow(Math.sin((lat_end - lat_start) / 2), 2) +
-                                     Math.cos(lat_start) *
-                                     Math.cos(lat_end) *
-                                     Math.pow(Math.sin((long_end - long_start) / 2), 2)
-                                    )
-                         );
+    var dLat = this.degreesToRadians(lat_end - lat_start),
+      dLon = this.degreesToRadians(long_end - long_start),
+      lat1 = this.degreesToRadians(lat_start),
+      lat2 = this.degreesToRadians(lat_end);
+
+    var a = Math.pow(Math.sin(dLat / 2), 2) +
+            Math.pow(Math.sin(dLon / 2), 2) *
+            Math.cos(lat1) * Math.cos(lat2);
+    var centralAngle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return centralAngle;
+    // return 2 * Math.asine( Math.sqrt(Math.pow(Math.sin((lat_end - lat_start) / 2), 2) +
+    //                                  Math.cos(lat_start) *
+    //                                  Math.cos(lat_end) *
+    //                                  Math.pow(Math.sin((long_end - long_start) / 2), 2)
+    //                                 )
+    //                      );
   };
+
 
   Tolmey.prototype.distanceInMeters = function (lat_start, long_start, lat_end, long_end) {
     var central_angle_in_radians = this.haversineFunction(lat_start, long_end, lat_end, long_end);
