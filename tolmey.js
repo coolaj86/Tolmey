@@ -1,7 +1,7 @@
 // (C) Jamison Dance (jergason) 2011
 // MIT License
 
-var Tolmey = (function() {
+(function() {
   "use strict";
 
   function Tolmey() {
@@ -20,8 +20,8 @@ var Tolmey = (function() {
   };
 
   Tolmey.prototype.distanceInMeters = function (lat_start, long_start, lat_end, long_end) {
-    var central_angle_in_radians = haversineFunction(lat_start, long_end, lat_end, long_end);
-    return central_angle_in_radians * RADIUS_OF_EARTH_IN_METERS;
+    var central_angle_in_radians = this.haversineFunction(lat_start, long_end, lat_end, long_end);
+    return central_angle_in_radians * this.RADIUS_OF_EARTH_IN_METERS;
   };
 
   Tolmey.prototype.getMercatorFromGPS = function (lat, lon, zoom) {
@@ -45,13 +45,13 @@ var Tolmey = (function() {
     return { x: tile_x, y: tile_y };
   };
 
-  Tolmey.prototype.getTileURL(mapping_system, x, y, zoom) {
+  Tolmey.prototype.getTileURL = function(mapping_system, x, y, zoom) {
     if (mapping_system === "openstreetmap") {
        return "http://tile.openstreetmap.org/" +
         zoom + "/" + x + "/" +
           y + ".png";
     }
-  }
+  };
 
   Tolmey.prototype.latToYPixels = function (zoom, lat) {
     var lat_m = this.atanh(Math.sin(lat));
@@ -112,5 +112,5 @@ var Tolmey = (function() {
     return (Math.abs(a - b) < width);
   };
 
-  return Tolmey;
+  module.exports = Tolmey;
 }());
