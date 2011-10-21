@@ -55,6 +55,9 @@ Or, if you already have an ender file, run:
 There is a small skeleton HTML page along with some javascript that
 demonstrates how you could use Tolmey.
 
+To build it, run `ender build jeesh path/to/tolmey`, and then open the
+index.html file in a browser.
+
 ##Tolmey and Google Maps
 I used FoxtrotGPS and OpenStreetMap to build this, but Google Maps
 apprears to use a very similar coordinate system and URL scheme, so

@@ -1,5 +1,6 @@
 (function () {
   "use strict";
+  var Tolmey = require('tolmey');
   function displayMapTileForCoordinates(event) {
     event.preventDefault();
     var zoom = parseInt($(this).find("#zoom").val(), 10),
