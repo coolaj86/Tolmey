@@ -1,0 +1,13 @@
+{
+    "name": "tolmey",
+    "description": "easy mapping tile downloading",
+    "version": "0.0.1",
+    "homepage": "https://github.com/jergason/Tolmey",
+    "author": "Jamison Dance <jergason@gmail.com> (http://jamisondance.com)",
+    "main": "./tolmey.js",
+    "keywords": ["mapping", "gps", "ender"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jergason/Tolmey.git"
+    }
+}
