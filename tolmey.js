@@ -7,25 +7,20 @@
   function Tolmey() {
     this.RADIUS_OF_EARTH_IN_METERS = 6378100;
     this.TILESIZE = 256;
-  }
 
-  //Returns the central angle between two points in latiude and longitude
-  Tolmey.prototype.haversineFunction = function (lat_start, long_start, lat_end, long_end) {
-    var dLat = this.degreesToRadians(lat_end - lat_start),
+    var haversineFunction = function (lat_start, long_start, lat_end, long_end) {
+      var dLat = this.degreesToRadians(lat_end - lat_start),
       dLon = this.degreesToRadians(long_end - long_start),
       lat1 = this.degreesToRadians(lat_start),
       lat2 = this.degreesToRadians(lat_end);
 
-    var a = Math.pow(Math.sin(dLat/2), 2) + Math.cos(lat1)*Math.cos(lat2)*Math.pow(Math.sin(dLon/2),2);
-    var centralAngle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return centralAngle;
-  };
+      var a = Math.pow(Math.sin(dLat/2), 2) + Math.cos(lat1)*Math.cos(lat2)*Math.pow(Math.sin(dLon/2),2);
+      var centralAngle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return centralAngle;
+    };
 
+  }
 
-  Tolmey.prototype.distanceInMeters = function (lat_start, long_start, lat_end, long_end) {
-    var central_angle_in_radians = this.haversineFunction(lat_start, long_start, lat_end, long_end);
-    return central_angle_in_radians * this.RADIUS_OF_EARTH_IN_METERS;
-  };
 
   Tolmey.prototype.getMercatorFromGPS = function (lat, lon, zoom) {
     var pixel_x = this.lonToXPixels(zoom, this.degreesToRadians(lon));
