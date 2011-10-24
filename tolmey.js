@@ -21,6 +21,10 @@
 
   }
 
+  Tolmey.prototype.distanceInMeters = function (lat_start, long_start, lat_end, long_end) {
+    var central_angle_in_radians = this.haversineFunction(lat_start, long_start, lat_end, long_end);
+    return central_angle_in_radians * this.RADIUS_OF_EARTH_IN_METERS;
+  };
 
   Tolmey.prototype.getMercatorFromGPS = function (lat, lon, zoom) {
     var pixel_x = this.lonToXPixels(zoom, this.degreesToRadians(lon));
