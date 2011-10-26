@@ -29,6 +29,7 @@ describe('Tolmey', function () {
     it('returns an array of URLs given valid arguments', function () {
       var results = t.getTileURLs({ mappingSystem: "openstreetmap", radius: 1500, lat: 40, lon: -111, zoom: 15 });
       expect(results.length).toBeGreaterThan(0);
+      // console.log("results: %j", results);
       results.forEach(function (urlsForZoomLevel) {
         // console.log(urlsForZoomLevel);
         urlsForZoomLevel.forEach(function (url) {

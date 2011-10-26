@@ -28,6 +28,7 @@
       east = this.translate(opts.lat, opts.lon, opts.radius, 90),
       urls = [],
       i, j, z, y0, y1, x0, x1,
+      mappingSystem = "openstreetmap",
       zoom = 12,
       maxZoom = 20;
 
@@ -36,6 +37,9 @@
     }
     if (opts.hasOwnProperty("maxZoom")) {
       maxZoom = opts.maxZoom;
+    }
+    if (opts.hasOwnProperty("mappingSystem")) {
+      mappingSystem = opts.mappingSystem;
     }
 
     for (i = 0; i <= maxZoom; i++) {
@@ -50,7 +54,7 @@
       // console.log("y0: %j x0: %j y1: %j x1: %j", y0, x0, y1, x1);
       for (i = x0.x; i <= x1.x; i++) {
         for (j = y0.y; j <= y1.y; j++) {
-          urls[zoom].push({ url: this.getTileURL(opts.mappingSystem, i, j, zoom), coords: { zoom: zoom, x: i, y: j }});
+          urls[zoom].push({ url: this.getTileURL(mappingSystem, i, j, zoom), coords: { zoom: zoom, x: i, y: j }});
         }
       }
     }
@@ -130,6 +134,10 @@
       return "http://tile.openstreetmap.org/" +
       zoom + "/" + x + "/" +
         y + ".png";
+    }
+    else if (mapping_system === "google") {
+      return "http://khm0.google.com/kh/v=95&x=" + x +
+       "&y=" + y + "&z=" + zoom + "&s=Gali";
     }
   };
 
