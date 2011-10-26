@@ -1,11 +1,16 @@
-var Tolmey = require('tolmey');
-var t = new Tolmey();
+var Tolmey = require('tolmey'),
+  t = new Tolmey();
 
 describe('Tolmey', function () {
   describe('distanceInMeters', function () {
     it('calculates the correct distance in meters between two points', function () {
       expect(t.distanceInMeters(40, 111, 40.0135, 111)).toBeWithin({ expected: 1500, range: 10 });
     });
+
+    it('handles wrapping around the origin', function () {
+      expect(t.distanceInMeters(179.999, 111, -179.999, 111)).toBeWithin({ expected: 222, range: 10 });
+    });
+
   });
 
   describe('getMercatorFromGPS', function () {
@@ -20,10 +25,26 @@ describe('Tolmey', function () {
     });
   });
 
-  // describe('distanceInMeters', function () {
-  //   it('returns the approximate distance in meters between to gps coordinates', function () {
-  //     expect(t.getPointDistanceAwayInDirection(1500, "North"));
-  //   });
-  // });
-});
+  describe('getTileURLs', function() {
+    it('returns an array of URLs given valid arguments', function () {
+      var results = t.getTileURLs({ mappingSystem: "openstreetmap", radius: 1500, lat: 40, lon: -111, zoom: 15 });
+      expect(results.length).toBeGreaterThan(0);
+      results.forEach(function (urlsForZoomLevel) {
+        // console.log(urlsForZoomLevel);
+        urlsForZoomLevel.forEach(function (url) {
+          expect(typeof(url.url)).toEqual("string");
+        });
+        //If there is anything for a zoom level, there should be a bunch of URLS for it.
+        if (urlsForZoomLevel.length > 0) {
+          expect(urlsForZoomLevel.length).toBeGreaterThan(1);
+        }
+      });
+    });
+  });
 
+  describe('translate', function() {
+    it('should give a correct lat and lon', function () {
+      expect(t.translate(40, 111, 1500, 0).latitude).toBeWithin({ expected: 40.0134, range: 0.0001 });
+    });
+  });
+});
