@@ -1,18 +1,18 @@
 (function () {
   "use strict";
-  require("Array.prototype.forEachAsync");
+  require('Array.prototype.forEachAsync');
   var Tolmey = require('tolmey'),
+    Futures = require('futures'),
     Tar = require('tar'),
     toDataURL = require('toDataURL'),
     ahr = require("ahr2"),
-    forEachAsync = require("forEachAsync"),
     converter = new Tolmey(),
     Join = require('join'),
     EventEmitter = require('events.node').EventEmitter,
     imageEmitter = new EventEmitter(),
     progressBar;
 
-  imageEmitter.on("image_downloaded", imageWasDownloaded);
+  imageEmitter.on('image_downloaded', imageWasDownloaded);
 
 
   function imageWasDownloaded (progress) {
@@ -22,14 +22,24 @@
   function displayMapTileForCoordinates (event) {
     event.preventDefault();
     var zoom = parseInt($(this).find("#zoom").val(), 10);
-      // tar = new Tar();
     navigator.geolocation.getCurrentPosition(function (position) {
       var lat = position.coords.latitude,
         long = position.coords.longitude,
         tile_coordinates = converter.getMercatorFromGPS(lat, long, zoom),
         url;
-      url = converter.getTileURL("google", tile_coordinates.x, tile_coordinates.y, zoom);
+      url = converter.getTileURL('google', tile_coordinates.x, tile_coordinates.y, zoom);
       $("img#map_result").attr("src", url);
+    });
+  }
+
+  function addToSequence(sequence, url, tar) {
+    sequence.then(function (next) {
+      ahr.get(url.url, {}, { overrideResponseType: 'binary' }).when(function (err, ahr, data) {
+        // numberOfTilesDownloaded += 1;
+        // var progress = parseInt((numberOfTilesDownloaded / numberOfTiles) * 100, 10);
+        addToTar(err, ahr, data, tar);
+        next();
+      });
     });
   }
 
@@ -44,15 +54,18 @@
       join = Join(),
       numberOfTilesDownloaded = 0,
       numberOfTiles = 0,
-      tilesAddedToTar = 0;
+      tilesAddedToTar = 0,
+      sequence = Futures.sequence(),
+      err,
+      i, j;
 
     urls = converter.getTileURLs({
       lat: lat,
       lon: lon,
       radius: radiusInMeters,
       mappingSystem: "google",
-      zoom: 15,
-      maxZoom: 17
+      zoom: 14,
+      maxZoom: 19
     });
 
     urls.forEach(function (url) { numberOfTiles += url.length });
@@ -62,36 +75,27 @@
 
     urls.forEach(function (urlArray) {
       urlArray.forEach(function (urlObject) {
-        //Callback Soup Served Fresh From Our Kitchens!®
-        // join.add() returns a callback, and registers an event with join.when so it knows
-        // to wait until the callback is called.
-        // We call our callback inside the arh.get.when() callback, because we know that
-        // the data is all downloaded then.
-        var callback = join.add();
-        ahr.get(urlObject.url, {}, { overrideResponseType: 'binary' }).when(function (err, ahr, data) {
-          callback(err, ahr, data, urlObject);
-          numberOfTilesDownloaded += 1;
-          var progress = parseInt((numberOfTilesDownloaded / numberOfTiles) * 100, 10);
-          imageEmitter.emit('image_downloaded', progress);
+        sequence.then(function (next) {
+          ahr.get(urlObject.url, {}, { overrideResponseType: 'binary' }).when(function (err, ahr, data) {
+            numberOfTilesDownloaded += 1;
+            var progress = parseInt((numberOfTilesDownloaded / numberOfTiles) * 100, 10);
+            addToTar(err, ahr, data, urlObject, tar);
+            imageEmitter.emit('image_downloaded', progress);
+            next();
+          });
         });
       });
     });
 
-    join.when(function () {
-      // Arguments are the arguments for each callback function wrapped
-      // up in an array.
-      var args = Array.prototype.slice.call(arguments, 0)
-      args.forEach(function (arg) {
-        addToTar(arg[0], arg[1], arg[2], arg[3], tar);
-        tilesAddedToTar += 1;
-      });
-
+    sequence.then(function (next) {
       downloadInBrowser(toDataURL, tar);
+      next();
     });
   }
 
   function downloadInBrowser(dataURLCreator, tar) {
     var dataURL = dataURLCreator.toDataURL(tar.out, "application/octet-stream", false);
+    console.log("length is " + dataURL.length);
     window.open(dataURL, "_self");
   }
 
