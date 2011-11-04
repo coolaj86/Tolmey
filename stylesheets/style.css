@@ -1,0 +1,33 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+#progress-bar {
+  margin-top: 30px;
+  padding: 5px 5px 9px 5px;
+  width: 300px;
+  border: 1px solid black;
+}
+
+#progress-bar h3 {
+  margin-top: 0px;
+}
+
+#bar-start-label {
+  float: left;
+}
+
+#bar-end-label {
+  float: right;
+}
+
+#bar-inner {
+  clear: both;
+  width: 1%;
+  background-color: green;
+}
