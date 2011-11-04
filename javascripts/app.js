@@ -29,18 +29,6 @@
         tile_coordinates = converter.getMercatorFromGPS(lat, long, zoom),
         url;
       url = converter.getTileURL("google", tile_coordinates.x, tile_coordinates.y, zoom);
-      // ahr.get(url, {}, { overrideResponseType: 'binary' }).when(function (err, response, data) {
-      //   if (err) {
-      //     return;
-      //   }
-      //   else if (response.browserRequest.status != 200) {
-      //     return;
-      //   }
-      //   var buff = new Uint8Array(data, 0, data.byteLength);
-      //   tar.append(url, buff);
-      //   var dataURL = toDataURL.toDataURL(tar.out, 'application/octet-stream', false);
-      //   window.open(dataURL, "_self");
-      // });
       $("img#map_result").attr("src", url);
     });
   }
@@ -55,7 +43,8 @@
       requests = [],
       join = Join(),
       numberOfTilesDownloaded = 0,
-      numberOfTiles = 0;
+      numberOfTiles = 0,
+      tilesAddedToTar = 0;
 
     urls = converter.getTileURLs({
       lat: lat,
@@ -67,30 +56,9 @@
     });
 
     urls.forEach(function (url) { numberOfTiles += url.length });
-
-
-
-    // urls.forEachAsync(function (next, urlArray, i, arr) {
-    //   urlArray.forEachAsync(downloadImage);
-    //   next();
-    // }).then(function () {
-    //   download(tar);
-    // });
-
-    // function downloadImage (next, url, i, arr) {
-    //   ahr.get(url.url, {}, { overrideResponseType: 'binary' }, function (err, ahr, data) {
-    //     numberOfTilesDownloaded += 1;
-    //     var progress = parseInt((numberOfTilesDownloaded / numberOfTiles) * 100, 10);
-    //     imageEmitter.emit('image_downloaded', progress);
-    //     addToTar(err, ahr, data, tar);
-    //   });
-    //   next();
-    // }
-
-    // function download (tar) {
-    //   var dataURL = toDataURL.toDataURL(tar.out, "application/octet-stream", false);
-    //   window.open(dataURL, "_self");
-    // }
+    if (numberOfTiles === 0) {
+      alert("Nothing found for this lat and lon. Try a different one.");
+    }
 
     urls.forEach(function (urlArray) {
       urlArray.forEach(function (urlObject) {
@@ -115,6 +83,7 @@
       var args = Array.prototype.slice.call(arguments, 0)
       args.forEach(function (arg) {
         addToTar(arg[0], arg[1], arg[2], arg[3], tar);
+        tilesAddedToTar += 1;
       });
 
       downloadInBrowser(toDataURL, tar);
