@@ -115,7 +115,7 @@
     }];
 
     //get the metadata
-    ahr.post(dropshareURL + '/files/new', {}, meta).which(function (err, res, data) {
+    ahr.post(dropshareURL + '/files/new', {}, meta).when(function (err, res, data) {
       var formData = new FormData();
       if (err || typeof(data) === "undefined") {
         throw new Error("can't get id from dropshare");
