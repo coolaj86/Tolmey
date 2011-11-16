@@ -25,17 +25,20 @@ describe('Tolmey', function () {
     });
   });
 
+  describe('getMetersPerPixel', function () {
+    it('returns the correct number of meters per pixel', function () {
+      expect(t.getMetersPerPixel(15, 44)).toBeCloseTo(3.43649, 4);
+    });
+  });
+
   describe('getTileURLs', function() {
     it('returns an array of URLs given valid arguments', function () {
       var results = t.getTileURLs({ mappingSystem: "openstreetmap", radius: 1500, lat: 40, lon: -111, zoom: 15 });
       expect(results.length).toBeGreaterThan(0);
-      // console.log("results: %j", results);
       results.forEach(function (urlsForZoomLevel) {
-        // console.log(urlsForZoomLevel);
         urlsForZoomLevel.forEach(function (url) {
           expect(typeof(url.url)).toEqual("string");
         });
-        //If there is anything for a zoom level, there should be a bunch of URLS for it.
         if (urlsForZoomLevel.length > 0) {
           expect(urlsForZoomLevel.length).toBeGreaterThan(1);
         }
