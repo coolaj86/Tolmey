@@ -107,6 +107,17 @@
     return central_angle_in_radians * this.RADIUS_OF_EARTH_IN_METERS;
   };
 
+  Tolmey.prototype.haversineFunction = function (lat_start, long_start, lat_end, long_end) {
+    var dLat = this.degreesToRadians(lat_end - lat_start),
+    dLon = this.degreesToRadians(long_end - long_start),
+    lat1 = this.degreesToRadians(lat_start),
+    lat2 = this.degreesToRadians(lat_end);
+
+    var a = Math.pow(Math.sin(dLat/2), 2) + Math.cos(lat1)*Math.cos(lat2)*Math.pow(Math.sin(dLon/2),2);
+    var centralAngle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return centralAngle;
+  };
+
   Tolmey.prototype.getMercatorFromGPS = function (lat, lon, zoom) {
     var pixel_x = this.lonToXPixels(zoom, this.degreesToRadians(lon));
     var pixel_y = this.latToYPixels(zoom, this.degreesToRadians(lat));
@@ -128,7 +139,6 @@
     return { x: tile_x, y: tile_y };
   };
 
-
   Tolmey.prototype.getTileURL = function (mapping_system, x, y, zoom) {
     if (mapping_system === "openstreetmap") {
       return "http://tile.openstreetmap.org/" +
@@ -140,20 +150,6 @@
        "&y=" + y + "&z=" + zoom + "&s=Gali";
     }
   };
-
-  Tolmey.prototype.haversineFunction = function (lat_start, long_start, lat_end, long_end) {
-    var dLat = this.degreesToRadians(lat_end - lat_start),
-    dLon = this.degreesToRadians(long_end - long_start),
-    lat1 = this.degreesToRadians(lat_start),
-    lat2 = this.degreesToRadians(lat_end);
-
-    var a = Math.pow(Math.sin(dLat/2), 2) + Math.cos(lat1)*Math.cos(lat2)*Math.pow(Math.sin(dLon/2),2);
-    var centralAngle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return centralAngle;
-  };
-
-
-
 
   Tolmey.prototype.latToYPixels = function (zoom, lat) {
     var lat_m = this.atanh(Math.sin(lat));
@@ -171,15 +167,17 @@
   Tolmey.prototype.getEarthRadiusAtZoomLevel = function (zoom_level) {
     //At each zoom level, it takes zoom_level^2 images to span the earth.
     //At zoom level 0, it takes 1 image to cover the earth, so the circumference is 1.
-    var circumference = this.getCircumference(zoom_level);
+    var circumference = this.getCircumferenceInTiles(zoom_level);
     return circumference / (2 * Math.PI);
   };
 
-  Tolmey.prototype.getCircumference = function (zoom_level) {
-    var tiles = Math.pow(2, zoom_level);
-    var circumference = tiles;
-    return circumference;
+  Tolmey.prototype.getCircumferenceInTiles = function (zoom_level) {
+    return Math.pow(2, zoom_level);
   };
+
+  Tolmey.prototype.getMetersPerPixel = function (zoom_level, latitude) {
+    return (Math.cos(latitude * (Math.PI / 180)) * 2 * Math.PI * this.RADIUS_OF_EARTH_IN_METERS) /  (this.TILESIZE * this.getCircumferenceInTiles(zoom_level));
+  }
 
   Tolmey.prototype.xPixelToLon = function (zoom, xPixel) {
     var lon = ((xPixel - ( Math.exp(zoom * Math.log(2)) * (this.TILESIZE / 2))) * 2 * Math.PI) /
