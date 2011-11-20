@@ -4,13 +4,6 @@
 (function() {
   "use strict";
 
-  var directions = {
-    NORTH: 0,
-    SOUTH: 1,
-    WEST: 2,
-    EAST: 3
-  };
-
   function Tolmey() {
     this.RADIUS_OF_EARTH_IN_METERS = 6378100;
     this.TILESIZE = 256;
@@ -22,15 +15,17 @@
   // The array is indexed by zoom level, so urls[15] is all the URLs for tiles that cover the area
   // in zoom level 15, ect.
   Tolmey.prototype.getTileURLs = function (opts) {
-    var north = this.translate(opts.lat, opts.lon, opts.radius, 0),
-      south = this.translate(opts.lat, opts.lon, opts.radius, 180),
-      west = this.translate(opts.lat, opts.lon, opts.radius, 270),
-      east = this.translate(opts.lat, opts.lon, opts.radius, 90),
-      urls = [],
-      i, j, z, y0, y1, x0, x1,
-      mappingSystem = "openstreetmap",
-      zoom = 12,
-      maxZoom = 20;
+    var north = this.translate(opts.lat, opts.lon, opts.radius, 0)
+      , south = this.translate(opts.lat, opts.lon, opts.radius, 180)
+      , west = this.translate(opts.lat, opts.lon, opts.radius, 270)
+      , east = this.translate(opts.lat, opts.lon, opts.radius, 90)
+      , urls = []
+      , origin
+      , i, j, z, y0, y1, x0, x1
+      , mappingSystem = "openstreetmap"
+      , zoom = 12
+      , maxZoom = 20
+      ;
 
     if (opts.hasOwnProperty("zoom")) {
       zoom = opts.zoom;
@@ -46,12 +41,13 @@
       urls[i] = [];
     }
 
+
     for (zoom; zoom <= maxZoom; zoom++) {
       y0 = this.getMercatorFromGPS(north.latitude, north.longitude, zoom);
       y1 = this.getMercatorFromGPS(south.latitude, south.longitude, zoom);
       x0 = this.getMercatorFromGPS(west.latitude, west.longitude, zoom);
       x1 = this.getMercatorFromGPS(east.latitude, east.longitude, zoom);
-      // console.log("y0: %j x0: %j y1: %j x1: %j", y0, x0, y1, x1);
+
       for (i = x0.x; i <= x1.x; i++) {
         for (j = y0.y; j <= y1.y; j++) {
           urls[zoom].push({ url: this.getTileURL(mappingSystem, i, j, zoom), coords: { zoom: zoom, x: i, y: j }});
@@ -62,10 +58,11 @@
   };
 
   Tolmey.prototype.translate = function (lat, lon, d, brng) {
-    var R = this.RADIUS_OF_EARTH_IN_METERS,
-    lat2,
-    lon2,
-    ret;
+    var R = this.RADIUS_OF_EARTH_IN_METERS
+      , lat2
+      , lon2
+      , ret
+      ;
 
     lat = this.degreesToRadians(lat);
     lon = this.degreesToRadians(lon);
@@ -176,6 +173,12 @@
   };
 
   Tolmey.prototype.getMetersPerPixel = function (zoom_level, latitude) {
+    if (zoom_level < 0) {
+      zoom_level = 0;
+    }
+    if (latitude > 85.05 || latitude < -85.05) {
+      throw new Error("Mercator projection is not valid outside of [-85.05, 85.05].");
+    }
     return (Math.cos(latitude * (Math.PI / 180)) * 2 * Math.PI * this.RADIUS_OF_EARTH_IN_METERS) /  (this.TILESIZE * this.getCircumferenceInTiles(zoom_level));
   }
 
