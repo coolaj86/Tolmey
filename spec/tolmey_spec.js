@@ -40,6 +40,28 @@ describe('Tolmey', function () {
     });
   });
 
+  describe('intersection', function () {
+    it('calculates the latitude and longitude of two lines going through two points in two bearings', function () {
+      var res
+        , lat1 = 0.0001
+        , lon1 = 35.63
+        , bearing1 = 270
+        , lat2 = 64.716
+        , lon2 = 0
+        , bearing2 = 180
+        ;
+      res = t.intersection(lat1, lon1, bearing1, lat2, lon2, bearing2);
+      expect(res.latitude).toBeCloseTo(0);
+      expect(res.longitude).toBeCloseTo(0);
+    });
+
+    it ('calculates the latlong for non-zero points', function () {
+      res = t.intersection(51.885, 0.235, 108.63, 49.008, 2.549, 32.72);
+      expect(res.latitude).toBeCloseTo(50.90172260891765);
+      expect(res.longitude).toBeCloseTo(4.494278279011636);
+    });
+  });
+
   describe('getTileURLs', function() {
     it('returns an array of URLs given valid arguments', function () {
       var results = t.getTileURLs({ mappingSystem: "openstreetmap", radius: 1500, lat: 40, lon: -111, zoom: 15 });
