@@ -4,6 +4,20 @@
 (function() {
   "use strict";
 
+  //Add the toRad method to the Number object
+  if (typeof(Number.prototype.toRad) === "undefined") {
+    Number.prototype.toRad = function () {
+      return this * (Math.PI / 180);
+    };
+  }
+
+  if (typeof(Number.prototype.toDeg) === "undefined") {
+    Number.prototype.toDeg = function () {
+      return this * (180 / Math.PI);
+    };
+  }
+
+
   function Tolmey() {
     this.RADIUS_OF_EARTH_IN_METERS = 6378100;
     this.TILESIZE = 256;
@@ -64,9 +78,9 @@
       , ret
       ;
 
-    lat = this.degreesToRadians(lat);
-    lon = this.degreesToRadians(lon);
-    brng = this.degreesToRadians(brng);
+    lat = lat.toRad();
+    lon = lon.toRad();
+    brng = brng.toRad();
 
     lat2 = Math.asin(Math.sin(lat) * Math.cos(d/R) +
                      Math.cos(lat) * Math.sin(d/R) * Math.cos(brng));
@@ -77,8 +91,8 @@
     lon2 = (lon2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
 
     ret = {
-      latitude: this.radiansToDegrees(lat2),
-      longitude: this.radiansToDegrees(lon2)
+        latitude: lat2.toDeg()
+      , longitude: lon2.toDeg()
     };
     return ret;
   };
@@ -105,10 +119,11 @@
   };
 
   Tolmey.prototype.haversineFunction = function (lat_start, long_start, lat_end, long_end) {
-    var dLat = this.degreesToRadians(lat_end - lat_start),
-    dLon = this.degreesToRadians(long_end - long_start),
-    lat1 = this.degreesToRadians(lat_start),
-    lat2 = this.degreesToRadians(lat_end);
+    var dLat = (lat_end - lat_start).toRad()
+      , dLon = (long_end - long_start).toRad()
+      , lat1 = lat_start.toRad()
+      , lat2 = lat_end.toRad()
+      ;
 
     var a = Math.pow(Math.sin(dLat/2), 2) + Math.cos(lat1)*Math.cos(lat2)*Math.pow(Math.sin(dLon/2),2);
     var centralAngle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -116,8 +131,8 @@
   };
 
   Tolmey.prototype.getMercatorFromGPS = function (lat, lon, zoom) {
-    var pixel_x = this.lonToXPixels(zoom, this.degreesToRadians(lon));
-    var pixel_y = this.latToYPixels(zoom, this.degreesToRadians(lat));
+    var pixel_x = this.lonToXPixels(zoom, lon.toRad());
+    var pixel_y = this.latToYPixels(zoom, lat.toRad());
     var max_pixel = Math.pow(2, zoom) * this.TILESIZE;
 
     if (pixel_x < 0) {
@@ -182,6 +197,98 @@
     return (Math.cos(latitude * (Math.PI / 180)) * 2 * Math.PI * this.RADIUS_OF_EARTH_IN_METERS) /  (this.TILESIZE * this.getCircumferenceInTiles(zoom_level));
   }
 
+  // Taken from http://www.movable-type.co.uk/scripts/latlong.html.
+  // Latitude/longitude spherical geodesy formulae & scripts (c) Chris Veness 2002-2011
+  Tolmey.prototype.intersection = function(lat1, lon1, brng1, lat2, lon2, brng2) {
+    var dLat
+      , dLon
+      , dist12
+      , dist13
+      , brngA
+      , brngB
+      , brng12
+      , brng21
+      , brng23
+      , alpha1
+      , alpha2
+      , alpha3
+      , dist13
+      , dist23
+      , lat3
+      , lon3
+      , dLon13
+      ;
+
+    lat1 = lat1.toRad();
+    lon1 = lon1.toRad();
+    lat2 = lat2.toRad();
+    lon2 = lon2.toRad();
+    brng1 = brng1.toRad();
+    brng2 = brng2.toRad();
+
+    dLat = lat2-lat1, dLon = lon2-lon1;
+
+    dist12 = 2*Math.asin( Math.sqrt( Math.sin(dLat/2)*Math.sin(dLat/2) + 
+                                    Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)*Math.sin(dLon/2) ) );
+    if (dist12 == 0) {
+      return null;
+    }
+
+    // initial/final bearings between points
+    brngA = Math.acos( ( Math.sin(lat2) - Math.sin(lat1)*Math.cos(dist12) ) / 
+                     ( Math.sin(dist12)*Math.cos(lat1) ) );
+    if (isNaN(brngA)) {
+      brngA = 0;  // protect against rounding
+    }
+    brngB = Math.acos( ( Math.sin(lat1) - Math.sin(lat2)*Math.cos(dist12) ) / 
+                     ( Math.sin(dist12)*Math.cos(lat2) ) );
+
+    if (Math.sin(lon2-lon1) > 0) {
+      brng12 = brngA;
+      brng21 = 2*Math.PI - brngB;
+    }
+    else {
+      brng12 = 2*Math.PI - brngA;
+      brng21 = brngB;
+    }
+
+    alpha1 = (brng1 - brng12 + Math.PI) % (2*Math.PI) - Math.PI;  // angle 2-1-3
+    alpha2 = (brng21 - brng2 + Math.PI) % (2*Math.PI) - Math.PI;  // angle 1-2-3
+
+
+    if (Math.sin(alpha1)==0 && Math.sin(alpha2)==0) {
+      // infinite intersections
+      return null;
+    }
+    if (Math.sin(alpha1)*Math.sin(alpha2) < 0) {
+      // ambiguous intersection
+      return null;
+    }
+
+    //alpha1 = Math.abs(alpha1);
+    //alpha2 = Math.abs(alpha2);
+    // ... Ed Williams takes abs of alpha1/alpha2, but seems to break calculation?
+
+    alpha3 = Math.acos( -Math.cos(alpha1)*Math.cos(alpha2) + 
+                       Math.sin(alpha1)*Math.sin(alpha2)*Math.cos(dist12) );
+    dist13 = Math.atan2( Math.sin(dist12)*Math.sin(alpha1)*Math.sin(alpha2), 
+                        Math.cos(alpha2)+Math.cos(alpha1)*Math.cos(alpha3) )
+    lat3 = Math.asin( Math.sin(lat1)*Math.cos(dist13) + 
+                     Math.cos(lat1)*Math.sin(dist13)*Math.cos(brng1) );
+    dLon13 = Math.atan2( Math.sin(brng1)*Math.sin(dist13)*Math.cos(lat1), 
+                        Math.cos(dist13)-Math.sin(lat1)*Math.sin(lat3) );
+    lon3 = lon1+dLon13;
+    lon3 = (lon3+3*Math.PI) % (2*Math.PI) - Math.PI;  // normalise to -180..+180º
+    // console.log('Math.sin(lat1)*Math.cos(dist13)', Math.sin(lat1)*Math.cos(dist13));
+    // console.log(' Math.cos(lat1)*Math.sin(dist13)*Math.cos(brng1)',  Math.cos(lat1)*Math.sin(dist13)*Math.cos(brng1));
+    // console.log('Math.cos(brng1)', Math.cos(brng1));
+    // console.log('bearning13', brng1);
+    // console.log('alpha3 is ', alpha3, ' dist13 is ', dist13, ' lat3 is ', lat3, ' dlon13 is ', dLon13, ' lon3 is ', lon3);
+    // console.log('dist12 is ', dist12, ' alpha1 is ', alpha1, ' alpha2 is ', alpha2);
+
+    return { latitude: lat3.toDeg(), longitude: lon3.toDeg() };
+  }
+
   Tolmey.prototype.xPixelToLon = function (zoom, xPixel) {
     var lon = ((xPixel - ( Math.exp(zoom * Math.log(2)) * (this.TILESIZE / 2))) * 2 * Math.PI) /
       (this.TILESIZE * Math.exp(zoom * Math.log(2)));
@@ -201,14 +308,6 @@
 
   Tolmey.prototype.tanh = function (x) {
     return (Math.exp(2 * x) - 1) / (Math.exp(2 * x) + 1);
-  };
-
-  Tolmey.prototype.degreesToRadians = function (degrees) {
-    return (degrees * Math.PI) / 180;
-  };
-
-  Tolmey.prototype.radiansToDegrees = function (radians) {
-    return (radians * 180) / Math.PI;
   };
 
   Tolmey.prototype.within = function (a, b, width) {
