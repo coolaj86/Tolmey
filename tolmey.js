@@ -17,10 +17,31 @@
     };
   }
 
+  //Add math trig functions
+  if (typeof(Math.atanh) === "undefined") {
+    Math.atanh = function (x) {
+      return 0.5 * Math.log((1 + x) / (1 - x));
+    };
+  }
 
-  function Tolmey() {
+  if (typeof(Math.tanh) === "undefined") {
+    Math.tanh = function (x) {
+      return (Math.exp(2 * x) - 1) / (Math.exp(2 * x) + 1);
+    };
+  }
+
+  function Tolmey(opts) {
+    if (!opts) {
+      opts = {}
+    }
+
+    if (!opts.tilesize) {
+      //Default tile size in pixels
+      opts.tilesize = 256
+    }
+
+    this.TILESIZE = opts.tilesize;
     this.RADIUS_OF_EARTH_IN_METERS = 6378100;
-    this.TILESIZE = 256;
   }
 
 
@@ -97,7 +118,6 @@
     return ret;
   };
 
-  // Wrap around the
   Tolmey.prototype.modGPSAdd = function (x, y) {
     var res = x + y;
     if (res > 180) {
@@ -131,8 +151,8 @@
   };
 
   Tolmey.prototype.getMercatorFromGPS = function (lat, lon, zoom) {
-    var pixel_x = this.lonToXPixels(zoom, lon.toRad());
-    var pixel_y = this.latToYPixels(zoom, lat.toRad());
+    var pixel_x = this.lonToXPixels(lon.toRad(), zoom);
+    var pixel_y = this.latToYPixels(lat.toRad(), zoom);
     var max_pixel = Math.pow(2, zoom) * this.TILESIZE;
 
     if (pixel_x < 0) {
@@ -163,17 +183,36 @@
     }
   };
 
-  Tolmey.prototype.latToYPixels = function (zoom, lat) {
-    var lat_m = this.atanh(Math.sin(lat));
+  // Takes lat in radians and a zoom, and returns a y pixel
+  Tolmey.prototype.latToYPixels = function (lat, zoom) {
+    var lat_m = Math.atanh(Math.sin(lat));
     var pixel_y = -( (lat_m * this.TILESIZE * Math.exp(zoom * Math.log(2)) ) / (2 * Math.PI)) +
       (Math.exp(zoom * Math.log(2)) * (this.TILESIZE/2) );
     return Math.floor(pixel_y);
   };
 
-  Tolmey.prototype.lonToXPixels = function (zoom, lon) {
+  // Takes the longitude in radians and tile zoom, and returns an x pixel.
+  Tolmey.prototype.lonToXPixels = function (lon, zoom) {
     var pixel_x = ( (lon * this.TILESIZE * Math.exp(zoom * Math.log(2)) ) / (2*Math.PI) ) +
       ( Math.exp(zoom * Math.log(2)) * (this.TILESIZE/2) );
     return Math.floor(pixel_x);
+  };
+
+  Tolmey.prototype.latLonToPixel = function (lat, lon, zoom) {
+    return { x: this.lonToXPixels(lon, zoom), y: this.latToYPixels(lat, zoom) };
+  };
+
+  Tolmey.prototype.xPixelToLon = function (xPixel, zoom) {
+    var lon = ((xPixel - ( Math.exp(zoom * Math.log(2)) * (this.TILESIZE / 2))) * 2 * Math.PI) /
+      (this.TILESIZE * Math.exp(zoom * Math.log(2)));
+    return lon;
+  };
+
+  Tolmey.prototype.yPixelToLat = function (yPixel, zoom) {
+    var latM = (-( yPixel - ( Math.exp(zoom * Math.log(2)) * (this.TILESIZE / 2))) * (2 * Math.PI)) /
+      (this.TILESIZE * Math.exp(zoom * Math.log(2)));
+    var lat = Math.atan(Math.tanh(latM));
+    return lat;
   };
 
   Tolmey.prototype.getEarthRadiusAtZoomLevel = function (zoom_level) {
@@ -228,19 +267,19 @@
 
     dLat = lat2-lat1, dLon = lon2-lon1;
 
-    dist12 = 2*Math.asin( Math.sqrt( Math.sin(dLat/2)*Math.sin(dLat/2) + 
+    dist12 = 2*Math.asin( Math.sqrt( Math.sin(dLat/2)*Math.sin(dLat/2) +
                                     Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)*Math.sin(dLon/2) ) );
     if (dist12 == 0) {
       return null;
     }
 
     // initial/final bearings between points
-    brngA = Math.acos( ( Math.sin(lat2) - Math.sin(lat1)*Math.cos(dist12) ) / 
+    brngA = Math.acos( ( Math.sin(lat2) - Math.sin(lat1)*Math.cos(dist12) ) /
                      ( Math.sin(dist12)*Math.cos(lat1) ) );
     if (isNaN(brngA)) {
       brngA = 0;  // protect against rounding
     }
-    brngB = Math.acos( ( Math.sin(lat1) - Math.sin(lat2)*Math.cos(dist12) ) / 
+    brngB = Math.acos( ( Math.sin(lat1) - Math.sin(lat2)*Math.cos(dist12) ) /
                      ( Math.sin(dist12)*Math.cos(lat2) ) );
 
     if (Math.sin(lon2-lon1) > 0) {
@@ -265,50 +304,19 @@
       return null;
     }
 
-    //alpha1 = Math.abs(alpha1);
-    //alpha2 = Math.abs(alpha2);
-    // ... Ed Williams takes abs of alpha1/alpha2, but seems to break calculation?
-
-    alpha3 = Math.acos( -Math.cos(alpha1)*Math.cos(alpha2) + 
+    alpha3 = Math.acos( -Math.cos(alpha1)*Math.cos(alpha2) +
                        Math.sin(alpha1)*Math.sin(alpha2)*Math.cos(dist12) );
-    dist13 = Math.atan2( Math.sin(dist12)*Math.sin(alpha1)*Math.sin(alpha2), 
+    dist13 = Math.atan2( Math.sin(dist12)*Math.sin(alpha1)*Math.sin(alpha2),
                         Math.cos(alpha2)+Math.cos(alpha1)*Math.cos(alpha3) )
-    lat3 = Math.asin( Math.sin(lat1)*Math.cos(dist13) + 
+    lat3 = Math.asin( Math.sin(lat1)*Math.cos(dist13) +
                      Math.cos(lat1)*Math.sin(dist13)*Math.cos(brng1) );
-    dLon13 = Math.atan2( Math.sin(brng1)*Math.sin(dist13)*Math.cos(lat1), 
+    dLon13 = Math.atan2( Math.sin(brng1)*Math.sin(dist13)*Math.cos(lat1),
                         Math.cos(dist13)-Math.sin(lat1)*Math.sin(lat3) );
     lon3 = lon1+dLon13;
     lon3 = (lon3+3*Math.PI) % (2*Math.PI) - Math.PI;  // normalise to -180..+180º
-    // console.log('Math.sin(lat1)*Math.cos(dist13)', Math.sin(lat1)*Math.cos(dist13));
-    // console.log(' Math.cos(lat1)*Math.sin(dist13)*Math.cos(brng1)',  Math.cos(lat1)*Math.sin(dist13)*Math.cos(brng1));
-    // console.log('Math.cos(brng1)', Math.cos(brng1));
-    // console.log('bearning13', brng1);
-    // console.log('alpha3 is ', alpha3, ' dist13 is ', dist13, ' lat3 is ', lat3, ' dlon13 is ', dLon13, ' lon3 is ', lon3);
-    // console.log('dist12 is ', dist12, ' alpha1 is ', alpha1, ' alpha2 is ', alpha2);
 
     return { latitude: lat3.toDeg(), longitude: lon3.toDeg() };
   }
-
-  Tolmey.prototype.xPixelToLon = function (zoom, xPixel) {
-    var lon = ((xPixel - ( Math.exp(zoom * Math.log(2)) * (this.TILESIZE / 2))) * 2 * Math.PI) /
-      (this.TILESIZE * Math.exp(zoom * Math.log(2)));
-    return lon;
-  };
-
-  Tolmey.prototype.yPixelToLat = function (zoom, yPixel) {
-    var latM = (-( yPixel - ( Math.exp(zoom * Math.log(2)) * (this.TILESIZE / 2))) * (2 * Math.PI)) /
-      (this.TILESIZE * Math.exp(zoom * Math.log(2)));
-    var lat = Math.atan(this.tanh(latM));
-    return lat;
-  };
-
-  Tolmey.prototype.atanh  = function (x) {
-    return 0.5 * Math.log((1 + x) / (1 - x));
-  };
-
-  Tolmey.prototype.tanh = function (x) {
-    return (Math.exp(2 * x) - 1) / (Math.exp(2 * x) + 1);
-  };
 
   Tolmey.prototype.within = function (a, b, width) {
     return (Math.abs(a - b) < width);

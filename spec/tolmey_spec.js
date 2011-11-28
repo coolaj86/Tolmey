@@ -62,7 +62,19 @@ describe('Tolmey', function () {
     });
   });
 
-  describe('getTileURLs', function() {
+  describe('latLonToPixel', function () {
+    it('converts latitudes and longitudes at a given zoom level to a pixel', function () {
+      var lat = -41.75
+        , lon = 111.88333
+        , zoom = 17
+        , pixels
+        ;
+      pixels = t.latLonToPixel(lat, lon, zoom);
+      expect(pixels).toEqual({ x: 614273773, y: 11068562 });
+    });
+  });
+
+  describe('getTileURLs', function () {
     it('returns an array of URLs given valid arguments', function () {
       var results = t.getTileURLs({ mappingSystem: "openstreetmap", radius: 1500, lat: 40, lon: -111, zoom: 15 });
       expect(results.length).toBeGreaterThan(0);
