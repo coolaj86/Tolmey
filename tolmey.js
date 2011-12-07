@@ -35,12 +35,12 @@
       opts = {}
     }
 
-    if (!opts.tilesize) {
+    if (!opts.tileSize) {
       //Default tile size in pixels
-      opts.tilesize = 256
+      opts.tileSize = 256
     }
 
-    this.TILESIZE = opts.tilesize;
+    this.TILESIZE = opts.tileSize;
     this.RADIUS_OF_EARTH_IN_METERS = 6378100;
   }
 
@@ -317,10 +317,6 @@
 
     return { latitude: lat3.toDeg(), longitude: lon3.toDeg() };
   }
-
-  Tolmey.prototype.within = function (a, b, width) {
-    return (Math.abs(a - b) < width);
-  };
 
   module.exports = Tolmey;
 }());
