@@ -3,10 +3,13 @@
 `Tolmey` is a little library for getting mapping images
 from latitdue and longitudes.
 
-Currently its main function is to convert latitude and
-longitude coordinates into a coordinate system used by
-[OpenStreetMap](http://openstreetmap.org), and turn the resulting
-coordinates into a URL for downloading that tile.
+It works for mapping systems using the EPSG:3857 or 
+"Spherical Mercator" coordinate system.
+
+This is the coordinate system used by
+most online mapping applications (OpenStreetMap, Google Maps, and a
+few others). The means that you can convert from a latitude and
+longitude to a map tile URL, to download or do whatever you want with.
 
 The code for transforming the coordinates was heavily inspired by the
 [FoxtrotGPS](http://foxtrotgps.org) code for doing so.
@@ -17,18 +20,15 @@ Tolmey uses [Ender](http://ender.no.de), a client-side library manager.
 Follow the instructions on the website for installing ender, and then
 navigate to the directory where you keep your javascript files.
 
-Tolmey is not in the NPM package index yet, so the best way to install
-it currently is to clone this repository somewhere.
+Install Tolmey from NPM:
 
-    git clone git@github.com:jergason/Tolmey.git
-    cd your/projects/javascript/folder
-    ender build path/to/Tolmey
+    ender build tolmey
 
 This produces an ender.js file, which includes the Tolmey library. Then
 add the `ender.js` file to your project like you would any other
 Javascript file.
 
-Or, if you already have an ender file, run:
+Or, if you already have an `ender.js` file, run:
 
     ender add path/to/Tolmey
 
